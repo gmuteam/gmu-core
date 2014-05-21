@@ -72,26 +72,24 @@ GMU 3.0 Core 目前基于 Polymer-Project，在其基础上扩展了部分标签
 ### 定义组件
 
 ```html
-<polymer-element name="w-demo" extends="w-core">
+<polymer-element name="w-demo" attributes="ishidden" extends="w-core">
   <template>
     <content></content>
   </template>
   <script>
     gmu('w-demo', {
-        hidden: false,
-
-        hide: function() {
-            this.style.display = 'none';
-            this.hidden = true;
-        },
-
-        show: function() {
-            this.style.display = 'block';
-            this.hidden = true;
-        },
+        ishidden: false,
 
         toggle: function() {
-            this.hidden ? this.show() : this.hide();
+            this.ishidden = !this.ishidden;
+        },
+
+        update: function() {
+            this.ishidden ? this.style.display = 'none' : this.style.display = 'block';
+        },
+
+        ishiddenChanged: function() {
+          this.update();
         }
     });
   </script>
@@ -102,12 +100,13 @@ GMU 3.0 Core 目前基于 Polymer-Project，在其基础上扩展了部分标签
 
 GMU 3.0 Core 不依赖第三方 DOM 操作类库，因此实现了部分 Helper 方法。
 
-### `gmu.mixin`
+`gmu.mixin(target, source)` : 将 `source` 对象属性 `mixin` 到 `target` ;
 
-### `gmu.find`
+`gmu.find(selector, context)` : 对 `querySelectorAll` 的代理;
 
-### `gmu.bind`
+`gmu.bind(fn, context)` : 将 `fn` 的 `this` 绑定为 `context` ;
 
-### `gmu.addEvent`
+`gmu.addEvent(el, event, callback)` : 对 `el.addEventListener(event, callback, false)` 的代理;
 
-### `gmu.toArray`
+`gmu.toArray(arrayLikeObject)` : 将 Arraylike Object 转换为数组;
+
