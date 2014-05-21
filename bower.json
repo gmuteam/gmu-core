@@ -1,0 +1,31 @@
+{
+  "name": "gmu-core",
+  "version": "0.0.1",
+  "homepage": "https://github.com/gmuteam/gmu-core",
+  "authors": [
+    "miller <chen.minliang@gmail.com>"
+  ],
+  "description": "The core library of GMU 3.0",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "mobile",
+    "ui",
+    "gmu",
+    "framework",
+    "javascript"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "platform": "Polymer/platform#~0.2.4",
+    "polymer": "Polymer/polymer#~0.2.4"
+  }
+}

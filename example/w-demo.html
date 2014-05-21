@@ -1,0 +1,32 @@
+<polymer-element name="w-on" attributes="event target action" extends="w-core">
+  <template>
+    <content></content>
+  </template>
+  <script>
+    gmu('w-on');
+  </script>
+</polymer-element>
+
+<polymer-element name="w-demo" attributes="ishidden" extends="w-core">
+  <template>
+    <content></content>
+  </template>
+  <script>
+    gmu('w-demo', {
+        ishidden: false,
+
+        toggle: function() {
+            this.ishidden = !this.ishidden;
+        },
+
+        update: function() {
+            this.ishidden ? this.style.display = 'none' : this.style.display = 'block';
+        },
+
+        ishiddenChanged: function() {
+          this.update();
+        }
+
+    });
+  </script>
+</polymer-element>
