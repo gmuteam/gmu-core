@@ -1,0 +1,66 @@
+<polymer-element name="w-json" attributes="json" extends="w-data">
+    <template>
+        <style>
+          :host {
+            display: none;
+          }
+        </style>
+        <content></content>
+    </template>
+    <script>
+        (function(){
+
+            /**
+             * w-json
+             * 描述 JSON 数据并提供相应的方法
+             * @class
+             * 
+             */
+            gmu('w-json', {
+
+                /**
+                 * 序列化后的 json 字符串
+                 *
+                 * @property json
+                 * @type {String}
+                 */
+                json: '{}',
+
+                /**
+                 * 获取数据 - JSON 对象
+                 *
+                 * @method getValue
+                 * @return {object} 格式化后的数据
+                 */
+                getValue: function() {
+                    return this.data;
+                },
+
+                /**
+                 * 设置 JSON 对象为新的数据
+                 * 如果需要触发 change 事件则必须通过 setValue 接口来设置
+                 * 注意：通过该接口设置数据后, json 属性值并不会同步，因此不应该依赖读取 json 属性的值来做某些操作，而是调用 getValue 接口来获取最新的数据。
+                 *
+                 * @method setValue
+                 * @param {object} value json对象
+                 */
+                setValue: function(value) {
+                    this.data = value;
+                },
+
+                /**
+                 * 当数据发送变化时会触发 change 事件
+                 *
+                 * @event change
+                 * @param {object} oldVal - e.detail.oldVal
+                 * @param {object} newVal - e.detail.newVal
+                 */
+                // 首次 jsonChanged 在 attached 之后才触发
+                jsonChanged: function() {
+                    this.data = JSON.parse(this.json);
+                }
+            });
+        })();
+
+    </script>
+</polymer-element>

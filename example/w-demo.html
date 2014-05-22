@@ -1,0 +1,24 @@
+<polymer-element name="w-demo" attributes="ishidden" extends="w-core">
+  <template>
+    <h2>Sub</h2>
+    <content></content>
+  </template>
+  <script>
+    gmu('w-demo', {
+        ishidden: false,
+
+        toggle: function() {
+            this.ishidden = !this.ishidden;
+        },
+
+        update: function() {
+            this.ishidden ? this.style.display = 'none' : this.style.display = 'block';
+        },
+
+        ishiddenChanged: function() {
+            this.update();
+        }
+
+    });
+  </script>
+</polymer-element>

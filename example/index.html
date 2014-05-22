@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>GMU Core Demo</title>
+        <meta name="viewport" content="width=device-width;"/>
+        <script src="../bower_components/platform/platform.js"></script>
+        <link rel="import" href="../src/w-core.html">
+        <link rel="import" href="../src/w-on.html">
+        <link rel="import" href="w-demo.html">
+        <link rel="import" href="w-button.html">
+    </head>
+    <body unresolved>
+        <w-button>
+            <button>Toggle</button>
+            <w-on event="click" target="#demo" action="toggle"></w-on>
+        </w-button>
+
+        <w-button>
+            <button>Hide</button>
+            <w-on event="click" target="#demo" action="ishidden=true"></w-on>
+        </w-button>
+
+        <w-button>
+            <button>Show</button>
+            <w-on event="click" target="#demo" action="ishidden=false"></w-on>
+        </w-button>
+        <w-demo id="demo">
+            <h1>GMU Core DEMO</h1>
+        </w-demo>
+    </body>
+</html>

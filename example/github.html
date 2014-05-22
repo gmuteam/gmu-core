@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>GMU Core Demo</title>
+        <meta name="viewport" content="width=device-width;"/>
+        <script src="../bower_components/platform/platform.js"></script>
+        <link rel="import" href="../src/w-core.html">
+        <link rel="import" href="../src/w-data.html">
+        <link rel="import" href="../src/w-on.html">
+        <link rel="import" href="../src/w-ajax.html">
+        <link rel="import" href="../src/w-model.html">
+        <link rel="import" href="w-demo.html">
+        <link rel="import" href="w-button.html">
+    </head>
+    <body unresolved>
+
+        <polymer-element name="w-github" attributes="value" extends="w-core">
+            <template>
+                <h1>Github Search</h1>
+                <input value="{{value}}">
+                <content></content>
+            </template>
+            <script>
+                Polymer('w-github', {
+
+                    valueChanged: function() {
+                        var ajax = this.find('#ajax')[0];
+                        ajax.auto = true;
+
+                        this.value && (ajax.params = '{"q":"' + this.value + '"}');
+
+                    }
+                });
+            </script>
+        </polymer-element>
+
+        <w-github value="gmu">
+
+            <w-ajax id="ajax" url="https://api.github.com/search/repositories">
+            </w-ajax>
+
+            <ul>
+                <template repeat="{{items}}">
+                    <li>{{name}}</li>
+                </template>
+            </ul>
+        </w-github>
+    </body>
+</html>

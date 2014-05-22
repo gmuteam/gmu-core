@@ -1,0 +1,82 @@
+<polymer-element name="w-model" attributes="dataField dataUpdateMode" extends="w-data">
+    <template>
+        <style>
+          :host {
+            display: none;
+          }
+        </style>
+        <content></content>
+    </template>
+    <script>
+        (function(){
+            /**
+             * w-model
+             * 描述 JSON 数据并提供相应的方法
+             * @class
+             * 
+             */
+            gmu('w-model', {
+
+                dataField: null,
+
+                /**
+                 * 数据更新策略
+                 * replace/prepend/append
+                 *
+                 * 注意：仅对数组类型的数据有效，并且确保每次变更的新数据仍然是数组类型
+                 * 
+                 * @type {String}
+                 */
+                dataUpdateMode: 'replace',
+
+                // 数据源变更时需要根据 dataUpdateMode 修改 w-model 的 data 属性
+                _prepareNewData: function(newVal) {
+
+                    // 如果数据是数组类型则可以 prepend 和 append
+                    var oldData = this.data;
+                    var newData = newVal;
+                    var mode = this.dataUpdateMode;
+
+                    if (Array.isArray(oldData) &&
+                        Array.isArray(newVal) && 
+                        mode != 'replace') {     
+
+                        if (mode == 'prepend') {
+                            newData = newVal.concat(oldData);
+                        }
+                        else if (mode == 'append') {
+                            newData = oldData.concat(newVal);
+                        }
+
+                    }
+
+                    // 指定数据源的某个字段为 model 的数据
+                    // 支持 a.b.c 格式
+                    if (this.dataField) {
+
+                        var fields = this.dataField.split('.');
+                        var data = newData;
+
+                        if( fields.length == 1 ) {
+                            return newData[this.dataField];
+                        }
+
+                        try{
+                            fields.forEach(function(field) {
+                                data = data[field];
+                            });
+                        }
+                        catch(e) {
+                            console.error('DATAFIELD ' + this.dataField + ' NOT MATCH DATA.');
+                        }
+
+                        return data;
+                    }
+
+                    return newData;
+                }
+            });
+        })();
+
+    </script>
+</polymer-element>

@@ -1,0 +1,382 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<polymer-element name="w-core" attributes="sourceSelector viewUpdateMode">
+    <!-- UI-less element -->
+    <script src="core.js"></script>
+    <script>
+        (function(env) {
+            var gmu = env.gmu;
+
+            // 数据源标签
+            var dataSourceTags = ['w-json', 'w-ajax', 'w-model'];
+
+            // 事件标签
+            var eventTags = ['w-on'];
+
+            // 模板标签
+            var tplTags = ['template'];
+
+            /**
+             * 底层通用处理：
+             *
+             * 1. 为所有生命周期回调添加通用的底层Hook
+             * 2. 为所有生命周期回调添加事件
+             */
+
+            // 所有 gmu 组件执行生命周期回调前会先执行该方法
+            // TODO: 由于所有组件初始化都需要执行以下方法，因此性能必须严格考虑
+            var innerCallbacks = {
+                created: function() {
+
+                    this.data = null;
+                },
+
+                ready: function() {
+                    // 如果需要获取自定义属性则需要在 ready 或之后执行
+                },
+
+                attached: function() {
+                    // 如果需要访问内部子结点，必须在此周期或之后调用
+                    initDataTag(this);
+                },
+
+                domReady: function() {
+                    // 如果需要访问内部子结点并且需要访问结点属性和方法则必须在此周期或之后调用
+                    initEventTags(this);
+                }
+            };
+
+            // Polymer的组件不会发送生命周期相关事件，在此补充
+            gmu.fn = function() {
+                var body = arguments[1] || {};
+                var lifeCycles = ['created','ready','attached', 'domReady', 'detached'];
+
+                lifeCycles.forEach(function(phase) {
+
+                    var phaseCallback = body[phase];
+
+                    body[phase] = function() {
+
+                        if (innerCallbacks[phase]) {
+                            innerCallbacks[phase].apply(this, arguments);
+                        }
+
+                        this.fire(phase.toLowerCase());
+                        return phaseCallback && phaseCallback.apply(this, arguments);
+                    };
+                });
+
+                arguments[1] = body;
+
+                return env.Polymer.apply( env, arguments );
+            };
+
+            // 当数据源发生变更时，根据视图更新策略更新组件内部结构
+            function updateView(tag) {
+                var viewUpdateMode = tag.viewUpdateMode;
+                var newContent = tag.render();
+
+                if (!newContent) {
+                    return;
+                }
+
+                switch(viewUpdateMode) {
+                    case 'no':
+                    break;
+
+                    case 'prepend':
+                        if (tag.childNodes.length) {
+                            tag.insertBefore(newContent,tag.firstChild);
+                        }
+                        else {
+                            tag.appendChild(newContent);
+                        }
+                    break;
+
+                    case 'append':
+                        tag.appendChild(newContent);
+                    break;
+
+                    case 'replace':
+                        clearContent(tag);
+                        tag.appendChild(newContent);
+                    break;
+                }
+            }
+
+            // 将元素中可见内容清除掉(数据源标签、事件标签除外)
+            function clearContent(tag) {
+                var invisibleTags = dataSourceTags.concat(eventTags);
+                var children = gmu.toArray(tag.childNodes);
+
+                children.forEach(function(child) {
+                    if (invisibleTags.indexOf(child.tagName.toLowerCase()) === -1) {
+
+                        // TODO: 移除前应该清除事件监听
+                        tag.removeChild(child);
+                    }
+                });
+            }
+
+            // 寻找tag内部的数据源标签，仅找直接子结点
+            function findInnerSource(tag) {
+                var children = gmu.toArray(tag.children);
+                var dataTag;
+
+                children.forEach(function(child) {
+                    if (child.tagName && dataSourceTags.indexOf(child.tagName.toLowerCase()) > -1) {
+                        dataTag = child;
+                    }
+                });
+
+                return dataTag;
+            }
+
+
+            /**
+             * 数据源处理
+             *
+             * 1. 查找数据源元素
+             * 2. 监听数据源数据更新事件
+             * 3. 触发数据更新事件
+             *
+             * 该方法需要查找其他元素并绑定事件，因此需要注意：
+             *
+             * 1. 依赖外部数据源时应该确保外部数据源位置在此标签之前
+             * 2. 依赖内部数据源时需要在内部标签解析后才能执行，因此需要在 attached 中调用
+             */
+            function initDataTag(tag) {
+                var sourceTag;
+
+                if (tag.sourceSelector) {
+                    var sourceTags = gmu.find(tag.sourceSelector);
+                    sourceTag = sourceTags[sourceTags.length-1];
+                }
+                else {
+                    sourceTag = findInnerSource(tag);
+                }
+
+                if (!sourceTag) {
+                    return;
+                }
+
+                tag.dataTag = sourceTag;
+
+                /**
+                 * 数据源变更事件
+                 *
+                 * 外部数据源需要单独监听 data-change 事件并转发
+                 * 内部数据源 data-change 会冒泡，因此无需转发
+                 *
+                 * @event
+                 * @param  {object} e 事件对象, e.detail获得变更详情
+                 */
+                
+                if (tag.sourceSelector) {
+                    // TODO: sourceTag 被销毁时清除事件
+                    sourceTag.addEventListener('data-change', function(e) {
+
+                        if (e.target != sourceTag) {
+                            return;
+                        }
+
+                        // 更新数据
+                        tag.data = tag._prepareNewData(e.detail.newVal);
+                        updateView(tag);
+                    }, false);
+                }
+                // data-change 默认会冒泡，在数据源层级较多的情况下会混乱
+                // 因此需要判断 data-change 是否由组件所属的 dataTag 触发
+                else {
+                    tag.addEventListener('data-change', function(e) {
+
+                        if (e.target != tag.dataTag) {
+                            return;
+                        }
+
+                        // 更新数据
+                        tag.data = tag._prepareNewData(e.detail.newVal);
+                        updateView(tag);
+                    }, false);
+                }
+
+            }
+
+            /**
+             * 事件tag处理
+             *
+             * 1. 查找事件元素并解析
+             * 2. 按照元素配置执行监听操作
+             */
+            
+            function initEventTags(tag) {
+                gmu.log('START initEventTags for: ' + tag.tagName);
+
+                var tags = findEventTags(tag);
+
+                gmu.log('findEventTags: ' + tags);
+
+                if (!tags.length) {
+                    return;
+                }
+
+                tag.eventTags = tags;
+
+                bindEvents(tag, tags);
+            }
+
+            // 寻找tag内部的事件标签，仅找直接子结点
+            function findEventTags(tag) {
+                var children = gmu.toArray(tag.children);
+                var tags = [];
+
+                children.forEach(function(child) {
+                    var name = child.tagName;
+                    if ( name && eventTags.indexOf(name.toLowerCase()) > -1) {
+                        var event = parseEventTag(child);
+                        event && tags.push(event);
+                    }
+                });
+
+                return tags;
+            }
+
+            function parseEventTag(eventTag) {
+                var name = eventTag.event;
+                var target = eventTag.target;
+                var action = eventTag.action;
+
+                if (!name || !target || !action) {
+                    return null;
+                }
+
+                var event = {
+                    name: name,
+                    target: target,
+                    el: eventTag,
+                    action: {}
+                };
+
+                var actions = action.split('=');
+
+                if (actions.length == 2) {
+                    event.action.property = actions[0];
+                    event.action.value = actions[1];
+                }
+                else if (actions.length == 1) {
+                    event.action.method = actions[0];
+                }
+
+                return event;
+            }
+
+            function bindEvents(tag, eventTagsData) {
+
+                eventTagsData.forEach(function(event) {
+
+                    // TODO: 组件在移除时应该移除事件监听
+                    
+                    gmu.log('bindEvents for: ' + tag.tagName);
+
+                    tag.addEventListener(event.name, function(e){
+
+                        gmu.log('response event: ' + e.type + ' on:' + tag.tagName);
+
+                        var targets = gmu.toArray(gmu.find(event.target));
+
+                        gmu.log('targets for event: ' + targets);
+
+                        targets.forEach(function(target) {
+
+                            var action = event.action;
+                            var method = action.method;
+                            var property = action.property;
+                            var value = action.value;
+
+                            if (value === 'true') {
+                                value = true;
+                            }
+                            else if (value === 'false') {
+                                value = false;
+                            }
+                            else if (/^[0-9]+$/i.test(value)) {
+                                value = parseInt(value);
+                            }
+                            else if (/^\.[0-9]+$/i.test(value) || /^[0-9]+\.[0-9]+$/i.test(value)) {
+                                value = parseFloat(value);
+                            }
+
+                            if (method && target[method]) {
+                                target[method]._e_ = e;
+                                target[method]();
+                            }
+                            else {
+                                target[property] = value;
+                            }
+
+                        });
+
+
+                    }, false);
+                });
+            }
+
+            /**
+             * 渲染模板
+             */
+            function renderTemplate(tag) {
+                var tplTag = findTplTags(tag);
+
+                tplTag && (tplTag.model = tag.data);
+            }
+
+            // 寻找tag内部的模板标签，仅找直接子结点
+            function findTplTags(tag) {
+                return tag.find(tplTags.join())[0];
+            }
+
+            /*
+            1. 初始化数据源：解析结点、监听
+            2. 视图更新策略
+            3. 事件关联
+            */
+            gmu('w-core', {
+
+                // 数据源选择符
+                sourceSelector: '',
+
+                // 数据源变更后视图更新策略(no/prepend/append/replace)
+                viewUpdateMode: 'replace',
+
+                // 数据源标签
+                dataTag: null,
+
+                // 事件标签
+                eventTags: null,
+
+                find: function(selector) {
+                    return gmu.find(selector, this);
+                },
+
+                /**
+                 * 元素内容渲染方法
+                 * 当数据源发生变化时组件默认会调用该方法并根据更新策略将返回结果放入组件内部
+                 * 默认行为是查找模板结点并将模板的 model 设置为 data
+                 * 组件实现时通过覆盖该方法可以重写渲染逻辑
+                 * @return {DOM}
+                 */
+                render: function() {
+                    renderTemplate(this);
+                },
+
+                // 当数据源发生变化时需要修改当前组件的 data 属性
+                // 对于 model 标签需要二次处理
+                // 其他标签直接使用数据源的 newVal
+                _prepareNewData: function( newVal ) {
+                    return newVal;
+                }
+            });
+        })(this);
+    </script>
+</polymer-element>
+
