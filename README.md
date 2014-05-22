@@ -4,7 +4,7 @@ GMU 3.0 Core
 ## 关于 GMU 3.0
 GMU 3.0 是新组件时代的移动端 Web 开发框架。
 
-在技术层面，它基于 [Web Components](www.w3.org/TR/components-intro/#introduction) 标准以及 [Polymer-Project](http://www.polymer-project.org/) 。
+在技术层面，它基于 [Web Components](http://www.w3.org/TR/components-intro/#introduction) 标准以及 [Polymer-Project](http://www.polymer-project.org/) 。
 
 在组件层面则基于 [X-SPEC](http://fex.baidu.com/xspec/index.html) 规范来实现。
 
