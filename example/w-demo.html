@@ -1,14 +1,6 @@
-<polymer-element name="w-on" attributes="event target action" extends="w-core">
-  <template>
-    <content></content>
-  </template>
-  <script>
-    gmu('w-on');
-  </script>
-</polymer-element>
-
 <polymer-element name="w-demo" attributes="ishidden" extends="w-core">
   <template>
+    <h2>Sub</h2>
     <content></content>
   </template>
   <script>
@@ -24,7 +16,7 @@
         },
 
         ishiddenChanged: function() {
-          this.update();
+            this.update();
         }
 
     });

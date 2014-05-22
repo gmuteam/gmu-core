@@ -2,63 +2,7 @@ window.addEventListener('polymer-ready', function(e) {
 
     var qf = document.getElementById('qunit-fixture');
 
-    gmu('w-ajax',{
-        created: function() {
-            // console.log('ajax1 created');
-        },
-
-        ready: function() {
-            // console.log('ajax1 ready');
-        },
-        
-        attached: function() {
-            // console.log('ajax1 attached');
-        },
-
-        domReady: function() {
-            // console.log('ajax1 domReady');
-        },
-        fireEvent: function() {
-            this.fire('data-change', {from:'ajax1',newVal:{a:2}} );
-        }
-    });
-
-    gmu('w-model',{
-        created: function() {
-            // console.log('model1 created');
-        },
-
-        ready: function() {
-            // console.log('model1 ready');
-        },
-        
-        attached: function() {
-            // console.log('model1 attached');
-        },
-
-        domReady: function() {
-            // console.log('model1 domReady');
-        },
-        fireEvent: function() {
-            this.fire('data-change', {from:'model1',newVal:{a:3}} );
-        }
-    });
-
-    gmu('w-on');
-
-    var elementDefine = document.createElement('div');
-
-    elementDefine.innerHTML = '\
-    <polymer-element name="w-ajax" attributes="name" extends="w-core">\
-    </polymer-element>\
-    <polymer-element name="w-model" attributes="name" extends="w-core">\
-    </polymer-element>\
-    <polymer-element name="w-on" attributes="event target action" extends="w-core">\
-    </polymer-element>';
-
-    document.body.appendChild(elementDefine);
-
-    module('基础方法测试');
+    module('::w-core::基础方法测试');
 
     test( 'mixin', function() {
 
@@ -136,7 +80,7 @@ window.addEventListener('polymer-ready', function(e) {
         ok( obj2.invoke() == 1 );
     });
 
-    module('继承一致性');
+    module('::w-core::继承一致性');
 
 
     asyncTest( '子组件能继承父组件的公开属性以及方法；', function() {
@@ -170,7 +114,7 @@ window.addEventListener('polymer-ready', function(e) {
 
     });
 
-    module('生命周期事件');
+    module('::w-core::生命周期事件');
 
     asyncTest( '所有生命周期方法被调用时都应该触发事件；', function() {
 
@@ -228,7 +172,7 @@ window.addEventListener('polymer-ready', function(e) {
 
     });
 
-    module('生命周期序列');
+    module('::w-core::生命周期序列');
 
     asyncTest( '父组件与子组件在初始化时是由外往内；', function() {
 
@@ -331,7 +275,7 @@ window.addEventListener('polymer-ready', function(e) {
 
     });
 
-    module('数据源相关');
+    module('::w-data::数据源相关');
 
     asyncTest( '组件的数据源元素只有一个；', function() {
 
@@ -340,32 +284,37 @@ window.addEventListener('polymer-ready', function(e) {
         var inc = 0;
 
         gmu('w-core-test8',{
-            created: function() {
-                this.data = {a:1};
-            },
+            data: {a:1},
+
             dataChanged: function() {
                 // exec twice
-                ok( true );
+                ok( true, 'dataChanged: ' + this.data.a );
             }
         });
 
         gmu('w-core-test9',{
             domReady: function() {
+
                 // 外部数据源不会导致监听组件触发 data-change
                 this.$.test1.addEventListener('data-change', function(e){
                     // Don't go here
+                    ok(false);
                 }, false)
 
                 // 内部数据源的 data-change 事件会冒泡
                 this.$.test2.addEventListener('data-change', function(e){
-                    ok(e.detail.from == 'ajax1');
+                    ok(e.detail.from == 'ajax1', 'event detail');
                 }, false);
 
-                this.$.ajax.fireEvent();
+                this.$.ajax.fire('data-change', {from:'ajax1',newVal:{a:2}} );
 
-                gmu.find('#model')[0].fireEvent();
+                gmu.find('#model')[0].fire('data-change', {from:'model1',newVal:{a:3}} );
+                
+                
 
-                start();
+                setTimeout(function() {
+                    start();
+                }, 100);
 
             }
         });
@@ -406,8 +355,8 @@ window.addEventListener('polymer-ready', function(e) {
 
         gmu('w-core-test11',{
             domReady: function() {
-                gmu.find('#ajax')[0].fireEvent();
-                this.$.innerajax.fireEvent();
+                gmu.find('#ajax')[0].fire('data-change', {from:'ajax1',newVal:{a:2}} );
+                this.$.innerajax.fire('data-change', {from:'ajax1',newVal:{a:2}} );
 
                 ok(this.$.test101.childNodes.length == 1);
                 ok(this.$.test102.childNodes.length == 2);
@@ -422,7 +371,9 @@ window.addEventListener('polymer-ready', function(e) {
                 ok(this.$.test105.firstChild.id == 'innerajax');
                 ok(this.$.test105.lastChild.name == 'div');
 
-                start();
+                setTimeout(function() {
+                    start();
+                }, 100);
             }
         });
 
@@ -447,7 +398,7 @@ window.addEventListener('polymer-ready', function(e) {
         ';
     });
 
-    module('事件元素');
+    module('::w-data::事件元素');
 
     asyncTest( '事件元素解析', function() {
 
@@ -536,7 +487,7 @@ window.addEventListener('polymer-ready', function(e) {
 
                 setTimeout(function(){
                     start();
-                }, 0);
+                }, 100);
                 
             }
         });

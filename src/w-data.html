@@ -1,0 +1,23 @@
+<polymer-element name="w-data" extends="w-core">
+    <template>
+        <content></content>
+    </template>
+    <script>
+        (function(){
+
+            /**
+             * w-data 
+             * 数据源标签的基类
+             * @class
+             * 
+             */
+            gmu('w-data', {
+                dataChanged: function(oldVal, newVal) {
+                    // TODO: diff the new and old value, fire event when really diffirent
+                    this.fire('data-change',{oldVal: oldVal, newVal: newVal});
+                }
+            });
+        })();
+
+    </script>
+</polymer-element>

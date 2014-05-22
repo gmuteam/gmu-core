@@ -13,6 +13,9 @@
             // 事件标签
             var eventTags = ['w-on'];
 
+            // 模板标签
+            var tplTags = ['template'];
+
             /**
              * 底层通用处理：
              *
@@ -117,7 +120,7 @@
 
             // 寻找tag内部的数据源标签，仅找直接子结点
             function findInnerSource(tag) {
-                var children = gmu.toArray(tag.childNodes);
+                var children = gmu.toArray(tag.children);
                 var dataTag;
 
                 children.forEach(function(child) {
@@ -172,8 +175,13 @@
                 if (tag.sourceSelector) {
                     // TODO: sourceTag 被销毁时清除事件
                     sourceTag.addEventListener('data-change', function(e) {
+
+                        if (e.target != sourceTag) {
+                            return;
+                        }
+
                         // 更新数据
-                        tag.data = e.detail.newVal;
+                        tag.data = tag._prepareNewData(e.detail.newVal);
                         updateView(tag);
                     }, false);
                 }
@@ -187,7 +195,7 @@
                         }
 
                         // 更新数据
-                        tag.data = e.detail.newVal;
+                        tag.data = tag._prepareNewData(e.detail.newVal);
                         updateView(tag);
                     }, false);
                 }
@@ -202,7 +210,11 @@
              */
             
             function initEventTags(tag) {
+                gmu.log('START initEventTags for: ' + tag.tagName);
+
                 var tags = findEventTags(tag);
+
+                gmu.log('findEventTags: ' + tags);
 
                 if (!tags.length) {
                     return;
@@ -263,9 +275,16 @@
                 eventTagsData.forEach(function(event) {
 
                     // TODO: 组件在移除时应该移除事件监听
+                    
+                    gmu.log('bindEvents for: ' + tag.tagName);
+
                     tag.addEventListener(event.name, function(e){
 
+                        gmu.log('response event: ' + e.type + ' on:' + tag.tagName);
+
                         var targets = gmu.toArray(gmu.find(event.target));
+
+                        gmu.log('targets for event: ' + targets);
 
                         targets.forEach(function(target) {
 
@@ -302,6 +321,20 @@
                 });
             }
 
+            /**
+             * 渲染模板
+             */
+            function renderTemplate(tag) {
+                var tplTag = findTplTags(tag);
+
+                tplTag && (tplTag.model = tag.data);
+            }
+
+            // 寻找tag内部的模板标签，仅找直接子结点
+            function findTplTags(tag) {
+                return tag.find(tplTags.join())[0];
+            }
+
             /*
             1. 初始化数据源：解析结点、监听
             2. 视图更新策略
@@ -328,11 +361,19 @@
                 /**
                  * 元素内容渲染方法
                  * 当数据源发生变化时组件默认会调用该方法并根据更新策略将返回结果放入组件内部
+                 * 默认行为是查找模板结点并将模板的 model 设置为 data
                  * 组件实现时通过覆盖该方法可以重写渲染逻辑
                  * @return {DOM}
                  */
                 render: function() {
+                    renderTemplate(this);
+                },
 
+                // 当数据源发生变化时需要修改当前组件的 data 属性
+                // 对于 model 标签需要二次处理
+                // 其他标签直接使用数据源的 newVal
+                _prepareNewData: function( newVal ) {
+                    return newVal;
                 }
             });
         })(this);

@@ -14,6 +14,16 @@
         return gmu.fn && gmu.fn.apply(this, arguments);
     };
 
+    gmu.debug = true;
+
+    gmu.log = function(msg, type) {
+        if (!gmu.debug) {
+            return;
+        }
+
+        console.log(msg);
+    };
+
     gmu.mixin = function(target, source) {
         for (var key in source) {
 
