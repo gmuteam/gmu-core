@@ -96,6 +96,11 @@ GMU 3.0 Core 目前基于 Polymer-Project，在其基础上扩展了部分标签
 </polymer-element>
 ```
 
+具体示例参考：
+
+ * [事件关联示例](http://gmuteam.github.io/gmu-core/example/): 演示了通过 `<w-on>` 组件来定义其父组件的事件关联关系；
+ * [数据源关联示例](http://gmuteam.github.io/gmu-core/example/github.html): 演示了 `<w-ajax>` 数据源以及自定义模板的使用；
+
 ## Helper 方法
 
 GMU 3.0 Core 不依赖第三方 DOM 操作类库，因此实现了部分 Helper 方法。
